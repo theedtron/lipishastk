@@ -27,11 +27,12 @@ class UssdController extends Controller
         $payload->data = \GuzzleHttp\json_encode($data);
         $payload->save();
 
-//        $exp_service_code = explode("*",$serviceCode);
+        $exp_service_code = explode("*",$serviceCode);
+        $extension = $exp_service_code[2];
 
         if(!empty($text)){
             $amount = $text;
-            self::stkPush($phoneNumber,$amount);
+            self::stkPush($phoneNumber,$amount,$extension);
             self::sendResponse('Please wait for mpesa pin to pay kshs.'.$amount,3);
         }else{
 
@@ -57,15 +58,25 @@ class UssdController extends Controller
         exit;
     }
 
-    public function stkPush($phone,$amount){
+    public function stkPush($phone,$amount,$extension){
+
+        if ($extension == 100){
+            $api_key = env('LIPISHA_API_KEY');
+            $api_signature = env('LIPISHA_API_SIGNATURE');
+            $account_number = "30439";
+        }else{
+            $api_key = env('LIPISHA_DOUBLEM_API_KEY');
+            $api_signature = env('LIPISHA_DOUBLEM_API_SIGNATURE');
+            $account_number = "30458";
+        }
 
         $client = new Client();
         $mat_invoice ="MATINV".rand(0,999999);
         $res = $client->post('https://api.lipisha.com/v2/request_money', [
             'form_params' => [
-                "api_key"=>env('LIPISHA_API_KEY'),
-                "api_signature"=>env('LIPISHA_API_SIGNATURE'),
-                "account_number"=>"30439",
+                "api_key"=>$api_key,
+                "api_signature"=>$api_signature,
+                "account_number"=>$account_number,
                 "mobile_number"=>"254".substr($phone,-9),
                 "method"=>"Paybill (M-Pesa)",
                 "amount"=>$amount,
@@ -86,10 +97,13 @@ class UssdController extends Controller
             $trx->save();
 
             $tout_sms = new NotifyController();
-            $tout_sms->sendSms('0722499900','Received Ksh.'.$amount.' at '.Carbon::now()->format('d-m-Y H:i:s').' Receipt Number: '.$mat_invoice);
+            $tout_sms->sendSms('0722499900','Received Ksh.'.$amount.' at '.Carbon::now()->format('d-m-Y H:i:s').' Receipt Number: '.$mat_invoice,$extension);
 
             $owner_sms = new NotifyController();
-            $owner_sms->sendSms('0703122323','KBP 170J Received Ksh.'.$amount.' at '.Carbon::now()->format('d-m-Y H:i:s').' Receipt Number: '.$mat_invoice);
+            $owner_sms->sendSms('0703122323','KBP 170J Received Ksh.'.$amount.' at '.Carbon::now()->format('d-m-Y H:i:s').' Receipt Number: '.$mat_invoice,$extension);
+
+            $passenger_sms = new NotifyController();
+            $passenger_sms->sendSms($format_res['content']['mobile_number'],'You paid Ksh.'.$amount.' at '.Carbon::now()->format('d-m-Y H:i:s').' Receipt Number: '.$mat_invoice,$extension);
         }
     }
 

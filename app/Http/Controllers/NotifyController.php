@@ -10,14 +10,24 @@ use function Couchbase\passthruEncoder;
 
 class NotifyController extends Controller
 {
-    public function sendSms($phone,$message){
+    public function sendSms($phone,$message,$extension){
+
+        if ($extension == 100){
+            $api_key = env('LIPISHA_API_KEY');
+            $api_signature = env('LIPISHA_API_SIGNATURE');
+            $account_number = "30439";
+        }else{
+            $api_key = env('LIPISHA_DOUBLEM_API_KEY');
+            $api_signature = env('LIPISHA_DOUBLEM_API_SIGNATURE');
+            $account_number = "30458";
+        }
 
         $client = new Client();
         $res = $client->post('https://api.lipisha.com/v2/send_sms', [
             'form_params' => [
-                "api_key"=>env('LIPISHA_API_KEY'),
-                "api_signature"=>env('LIPISHA_API_SIGNATURE'),
-                "account_number"=>"30439",
+                "api_key"=>$api_key,
+                "api_signature"=>$api_signature,
+                "account_number"=>$account_number,
                 "mobile_number"=>"254".substr($phone,-9),
                 "message"=>$message,
                 "reference"=>"MATSMS".rand(0,999999)
