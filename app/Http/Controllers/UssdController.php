@@ -86,10 +86,10 @@ class UssdController extends Controller
             $trx->save();
 
             $tout_sms = new NotifyController();
-            $tout_sms->sendSms('0715576111','Received Ksh.'.$amount.' at '.Carbon::now()->format('d-m-Y H:i:s').' Receipt Number: '.$mat_invoice);
+            $tout_sms->sendSms('0722499900','Received Ksh.'.$amount.' at '.Carbon::now()->format('d-m-Y H:i:s').' Receipt Number: '.$mat_invoice);
 
             $owner_sms = new NotifyController();
-            $owner_sms->sendSms('0717277588','KBP 170J Received Ksh.'.$amount.' at '.Carbon::now()->format('d-m-Y H:i:s').' Receipt Number: '.$mat_invoice);
+            $owner_sms->sendSms('0703122323','KBP 170J Received Ksh.'.$amount.' at '.Carbon::now()->format('d-m-Y H:i:s').' Receipt Number: '.$mat_invoice);
         }
     }
 
