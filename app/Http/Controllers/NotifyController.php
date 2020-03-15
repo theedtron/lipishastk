@@ -1,41 +1,16 @@
 <?php
 
+namespace App\Http\Controllers;
+
 use App\SmsLog;
+use App\TransactionLog;
 use GuzzleHttp\Client;
+use Illuminate\Http\Request;
+use function Couchbase\passthruEncoder;
 
-if(!function_exists('transactionNumberGenerator')) {
-
-    /**
-     * @return string
-     */
-    function transactionNumberGenerator(){
-        $string = "AAD7RYZY9B";
-
-        $last_char=substr($string,-1);
-        $rest=substr($string, 0, -1);
-        switch ($last_char) {
-            case '':
-                $next= 'A';
-                break;
-            case 'Z':
-                $next = '0';
-                $unique = ++$rest;
-                $rest = $unique;
-                break;
-            case '9':
-                $next= 'A';
-                break;
-            default:
-                $next = ++$last_char;
-                break;
-        }
-        $string=$rest.$next;
-        return $string;
-    }
-}
-
-if(!function_exists('lipishaSendSms')) {
-    function lipishaSendSms($phone,$message){
+class NotifyController extends Controller
+{
+    public function sendSms($phone,$message){
 
         $client = new Client();
         $res = $client->post('https://api.lipisha.com/v2/send_sms', [
@@ -62,5 +37,3 @@ if(!function_exists('lipishaSendSms')) {
         }
     }
 }
-
-

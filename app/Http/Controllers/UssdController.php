@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Payload;
+use App\TransactionLog;
+use Carbon\Carbon;
 use GuzzleHttp\Client;
 use Illuminate\Http\Request;
 
@@ -58,6 +60,7 @@ class UssdController extends Controller
     public function stkPush($phone,$amount){
 
         $client = new Client();
+        $mat_invoice ="MATINV".rand(0,999999);
         $res = $client->post('https://api.lipisha.com/v2/request_money', [
             'form_params' => [
                 "api_key"=>env('LIPISHA_API_KEY'),
@@ -67,14 +70,27 @@ class UssdController extends Controller
                 "method"=>"Paybill (M-Pesa)",
                 "amount"=>$amount,
                 "currency"=>"KES",
-                "reference"=>"MATINV".rand(0,999999)
+                "reference"=>$mat_invoice
             ]
         ]);
 
         $result = $res->getBody()->getContents();
 
         $format_res = json_decode($result,true);
-        print_r($format_res);
+        if ($format_res['status']['status'] = "SUCCESS"){
+            $trx = new TransactionLog();
+            $trx->reference_no =$format_res['content']['reference'];
+            $trx->phone =$format_res['content']['mobile_number'];
+            $trx->amount =$format_res['content']['amount'];
+            $trx->transaction_type = 1;
+            $trx->save();
+
+            $tout_sms = new NotifyController();
+            $tout_sms->sendSms($format_res['content']['mobile_number'],'Received Ksh.'.$amount.' at '.Carbon::now()->format('d-m-Y H:i:s').' Receipt Number: '.$mat_invoice);
+
+            $owner_sms = new NotifyController();
+            $owner_sms->sendSms($format_res['content']['mobile_number'],'KBP 170J Received Ksh.'.$amount.' at '.Carbon::now()->format('d-m-Y H:i:s').' Receipt Number: '.$mat_invoice);
+        }
     }
 
     public function lipishaReceiver(Request $request){
