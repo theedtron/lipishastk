@@ -36,7 +36,7 @@ class UssdController extends Controller
             self::sendResponse('Please wait for mpesa pin to pay kshs.'.$amount,3);
         }else{
 
-            self::sendResponse('Please enter *989*100*Amount#',3);
+            self::sendResponse('Please enter *989*'.$extension.'*Amount#',3);
         }
 
     }

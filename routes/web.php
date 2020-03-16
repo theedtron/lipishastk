@@ -19,5 +19,5 @@ Route::get('/', function () {
 
 Route::any('ussdpro','UssdController@index');
 Route::post('lipisha/receiver','UssdController@lipishaReceiver');
-Route::get('lipisha/pusher/{phone}/{amount}','UssdController@stkPush');
+Route::get('lipisha/pusher/{phone}/{amount}/{extension}','UssdController@stkPush');
 Route::get('lipisha/sms/{phone}/{message}','NotifyController@sendSms');
